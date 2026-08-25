@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>研发情报日报 · R&D Intelligence</title>
+<style>
+:root { --bg:#0b1020; --panel:#11172e; --panel2:#161d38; --line:#242c4d; --txt:#e2e8f0; --dim:#8892b0; --acc:#38bdf8; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--txt); font-family:"Segoe UI","Microsoft YaHei",-apple-system,sans-serif; }
+body::before { content:""; position:fixed; inset:0; background:
+  radial-gradient(60rem 30rem at 85% -10%, rgba(56,189,248,.13), transparent 60%),
+  radial-gradient(50rem 28rem at -10% 110%, rgba(167,139,250,.12), transparent 60%); pointer-events:none; }
+.wrap { position:relative; max-width:1280px; margin:0 auto; padding:0 24px 80px; }
+header.hero { padding:44px 0 22px; display:flex; flex-wrap:wrap; gap:18px; align-items:flex-end; justify-content:space-between; }
+.hero h1 { font-size:30px; font-weight:800; letter-spacing:.5px;
+  background:linear-gradient(90deg,#7dd3fc,#a78bfa,#f472b6); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.hero .sub { color:var(--dim); margin-top:8px; font-size:13px; }
+.search-bar { display:flex; gap:10px; align-items:center; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:10px 16px; min-width:320px; }
+.search-bar input { background:transparent; border:none; outline:none; color:var(--txt); font-size:14px; flex:1; }
+.stats { display:flex; gap:10px; margin:6px 0 18px; flex-wrap:wrap; }
+.stat { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:10px 16px; font-size:13px; color:var(--dim); }
+.stat b { color:var(--txt); font-size:17px; margin-right:6px; }
+.nav { position:sticky; top:0; z-index:50; background:rgba(11,16,32,.85); backdrop-filter:blur(10px); border-bottom:1px solid var(--line); padding:12px 0; display:flex; gap:8px; flex-wrap:wrap; }
+.nav-date { background:var(--panel); color:var(--txt); border:1px solid var(--line); padding:7px 14px; border-radius:999px; cursor:pointer; font-size:13px; transition:.18s; }
+.nav-date:hover,.nav-date.active { border-color:var(--acc); color:var(--acc); }
+.nav-date .cnt { opacity:.55; margin-left:5px; font-size:11px; }
+.major-banner { display:flex; gap:16px; align-items:center; margin:20px 0; padding:18px 20px; border-radius:16px;
+  background:linear-gradient(90deg, rgba(248,113,113,.16), rgba(248,113,113,.04)); border:1px solid rgba(248,113,113,.4); }
+.major-icon { font-size:30px; }
+.major-title { font-size:17px; font-weight:700; color:#fca5a5; }
+.major-desc { color:var(--txt); font-size:13.5px; margin-top:5px; line-height:1.65; }
+.day { margin-top:34px; }
+.day-head { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:16px; }
+.day-date { font-size:20px; font-weight:700; }
+.day-date .sub { font-size:12px; color:var(--dim); font-weight:400; margin-left:10px; }
+.chips { display:flex; gap:8px; flex-wrap:wrap; }
+.chip { font-size:12px; padding:5px 12px; border-radius:999px; border:1px solid var(--line); background:var(--panel); cursor:pointer; transition:.15s; }
+.chip.active { border-color:var(--acc); color:var(--acc); }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(360px,1fr)); gap:14px; }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px 18px; display:flex; flex-direction:column; gap:9px; transition:.2s; position:relative; overflow:hidden; }
+.card::before { content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--c,#38bdf8); opacity:.85; }
+.card:hover { transform:translateY(-3px); border-color:var(--c,#38bdf8); box-shadow:0 10px 30px rgba(0,0,0,.35); }
+.card-head { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.tag { font-size:11.5px; font-weight:600; color:var(--c); background:var(--bg); padding:3px 10px; border-radius:999px; border:1px solid var(--c); }
+.star { font-size:11.5px; color:#fde047; background:rgba(253,224,71,.1); border:1px solid rgba(253,224,71,.35); padding:3px 10px; border-radius:999px; }
+.pmid { font-size:11.5px; color:var(--dim); border:1px dashed var(--line); padding:2px 9px; border-radius:999px; }
+.card-title { font-size:15px; font-weight:700; line-height:1.55; }
+.card-desc { font-size:13px; color:#b6c0d9; line-height:1.7; }
+.card-foot { margin-top:auto; display:flex; flex-direction:column; gap:5px; }
+.src { font-size:11.5px; color:var(--dim); }
+.card-link { font-size:11.5px; color:var(--acc); text-decoration:none; word-break:break-all; opacity:.9; }
+.card-link:hover { text-decoration:underline; }
+.card-link.muted { color:var(--dim); opacity:.6; }
+footer { margin-top:48px; color:var(--dim); font-size:12px; text-align:center; line-height:1.9; }
+.empty { display:none; text-align:center; color:var(--dim); padding:60px 0; }
+@media print { body { background:#fff; color:#111; } .nav { display:none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <div>
+    <h1>研发情报日报</h1>
+    <div class="sub">多肽药物 · In vivo CAR-T · mRNA肿瘤疫苗 · 药企动态 ｜ 自动聚合 PubMed / Endpoints / FiercePharma ｜ 更新：2026-08-25 10:50</div>
+  </div>
+  <div class="search-bar">🔍 <input id="q" placeholder="搜索标题 / 关键词 / PMID / 期刊…"></div>
+</header>
+<div class="stats">
+  <span class="stat"><b>3</b>期简报</span>
+  <span class="stat"><b>30</b>条情报</span>
+  <span class="stat"><b>30</b>条带源链接</span>
+  <span class="stat"><b>4+1</b>板块追踪</span>
+</div>
+<nav class="nav"><button class="nav-date" data-target="day-2026-08-25">08-25 周二<span class="cnt">15</span></button><button class="nav-date" data-target="day-2026-08-24">08-24 周一<span class="cnt">8</span></button><button class="nav-date" data-target="day-2026-08-23">08-23 周日<span class="cnt">7</span></button></nav>
+<div class="major-banner">
+  <div class="major-icon">🚨</div>
+  <div><div class="major-title">GSK Hibsago（bepirovirsen）获日本MHLW批准 —— 全球首个获批的慢性乙肝功能性治愈疗法（2026-08-24）</div><div class="major-desc">日本先行获批（日本CHB患者近百万），基于B-Well 1/2 III期阳性结果。全球监管首次接受『功能性治愈』复合终点——但单药约10%应答率意味着多数患者仍需组合方案，降抗原+免疫重建的组合研发是行业竞逐的下一站。</div></div>
+</div>
+<section class="day" id="day-2026-08-25">
+  <div class="day-head">
+    <div class="day-date">08-25 周二<span class="sub">晨间+晚间（昨晚关机补跑）</span></div>
+    <div class="chips"><span class="chip" data-filter="peptide">🧬 多肽药物 · 4</span><span class="chip" data-filter="carT">🎯 In vivo CAR-T · 4</span><span class="chip" data-filter="mRNA">🧪 mRNA肿瘤疫苗 · 2</span><span class="chip" data-filter="pharma">🏢 药企动态 · 5</span></div>
+  </div>
+  <div class="grid"><div class="card" data-cat="peptide" data-text="阿片肽damgo蓝光光激活前药（tca-dccm-damgo） ucsd在jacs报道：小鼠脑内深部光解脱笼、快速激活μ受体——为体内时空可控的多肽给药提供工具化学范式 jacs · 8/24">
+  <div class="card-head">
+    <span class="tag" style="--c:#22d3ee;--bg:rgba(34,211,238,.12)">🧬 多肽药物</span>
+    <span class="pmid">PMID 42632910</span>
+  </div>
+  <div class="card-title">阿片肽DAMGO蓝光光激活前药（TCA-DCCM-DAMGO）</div>
+  <div class="card-desc">UCSD在JACS报道：小鼠脑内深部光解脱笼、快速激活μ受体——为体内时空可控的多肽给药提供工具化学范式</div>
+  <div class="card-foot"><span class="src">JACS · 8/24</span><a class="card-link" href="https://pubmed.ncbi.nlm.nih.gov/42632910/" target="_blank">https://pubmed.ncbi.nlm.nih.gov/42632910/</a></div>
+</div><div class="card" data-cat="peptide" data-text="glp-1ra使用与肠镜肠道准备不充分相关 日本单中心倾向评分匹配研究：32.2% vs 16.7%，周制剂风险高于日制剂——glp-1ra时代的新临床操作问题 8/24">
+  <div class="card-head">
+    <span class="tag" style="--c:#22d3ee;--bg:rgba(34,211,238,.12)">🧬 多肽药物</span>
+    <span class="pmid">PMID 42635465</span>
+  </div>
+  <div class="card-title">GLP-1RA使用与肠镜肠道准备不充分相关</div>
+  <div class="card-desc">日本单中心倾向评分匹配研究：32.2% vs 16.7%，周制剂风险高于日制剂——GLP-1RA时代的新临床操作问题</div>
+  <div class="card-foot"><span class="src">8/24</span><a class="card-link" href="https://pubmed.ncbi.nlm.nih.gov/42635465/" target="_blank">https://pubmed.ncbi.nlm.nih.gov/42635465/</a></div>
+</div><div class="card" data-cat="peptide" data-text="再生医学中的多肽综述：组织修复与慢性疼痛管理 系统梳理多肽在再生医学的临床应用进展 curr pain headache rep · 8/24">
+  <div class="card-head">
+    <span class="tag" style="--c:#22d3ee;--bg:rgba(34,211,238,.12)">🧬 多肽药物</span>
+    <span class="pmid">PMID 42635865</span>
+  </div>
+  <div class="card-title">再生医学中的多肽综述：组织修复与慢性疼痛管理</div>
+  <div class="card-desc">系统梳理多肽在再生医学的临床应用进展</div>
+  <div class="card-foot"><span class="src">Curr Pain Headache Rep · 8/24</span><a class="card-link" href="https://pubmed.ncbi.nlm.nih.gov/42635865/" target="_blank">https://pubmed.ncbi.nlm.nih.gov/42635865/</a></div>
+</div><div class="card" data-cat="peptide" data-text="益生菌来源抗菌蛋白/多肽综述 分子机制、临床应用与治疗前景；另有计算筛选amp抗eskape病原菌研究（pmid 42635919） probiotics antimicrob proteins · 8/24">
+  <div class="card-head">
+    <span class="tag" style="--c:#22d3ee;--bg:rgba(34,211,238,.12)">🧬 多肽药物</span>
+    <span class="pmid">PMID 42635917</span>
+  </div>
+  <div class="card-title">益生菌来源抗菌蛋白/多肽综述</div>
+  <div class="card-desc">分子机制、临床应用与治疗前景；另有计算筛选AMP抗ESKAPE病原菌研究（PMID 42635919）</div>
+  <div class="card-foot"><span class="src">Probiotics Antimicrob Proteins · 8/24</span><a class="card-link" href="https://pubmed.ncbi.nlm.nih.gov/42635917/" target="_blank">https://pubmed.ncbi.nlm.nih.gov/42635917/</a></div>
+</div><div class="card" data-cat="carT" data-text="nat cancer重磅综述：体内car-t工程重编程免疫 peter mac团队系统梳理lnp/mrna直接体内编程t细胞的技术路线与临床转化全景——体内car-t工程化领域的重磅综述 nat cancer · 8/22收录">
+  <div class="card-head">
+    <span class="tag" style="--c:#f472b6;--bg:rgba(244,114,182,.12)">🎯 In vivo CAR-T</span>
+    <span class="star">⭐ 重点</span><span class="pmid">PMID 42629461</span>
+  </div>
+  <div class="card-title">Nat Cancer重磅综述：体内CAR-T工程重编程免疫</div>
+  <div class="card-desc">Peter Mac团队系统梳理LNP/mRNA直接体内编程T细胞的技术路线与临床转化全景——体内CAR-T工程化领域的重磅综述</div>
+  <div class="card-foot"><span class="src">Nat Cancer · 8/22收录</span><a class="card-link" href="https://pubmed.ncbi.nlm.nih.gov/42629461/" target="_blank">https://pubmed.ncbi.nlm.nih.gov/42629461/</a></div>
+</div><div class="card" data-cat="carT" data-text="t细胞免疫衰老（而不仅耗竭）限制cll中cd19 car-t功能 宾大june/fraietta团队：为car-t产品失败提供新解释——免疫衰老视角 blood · 8/24">
+  <div class="card-head">
+    <span class="tag" style="--c:#f472b6;--bg:rgba(244,114,182,.12)">🎯 In vivo CAR-T</span>
+    <span class="pmid">PMID 42636161</span>
+  </div>
+  <div class="card-title">T细胞免疫衰老（而不仅耗竭）限制CLL中CD19 CAR-T功能</div>
+  <div class="card-desc">宾大June/Fraietta团队：为CAR-T产品失败提供新解释——免疫衰老视角</div>
+  <div class="card-foot"><span class="src">Blood · 8/24</span><a class="card-link" href="https://pubmed.ncbi.nlm.nih.gov/42636161/" target="_blank">https://pubmed.ncbi.nlm.nih.gov/42636161/</a></div>
+</div><div class="card" data-cat="carT" data-text="免疫球蛋白恒定区作为tcr-t治多发性骨髓瘤新靶点 blood新作：tcr-t靶向策略扩展 blood · 8/24">
+  <div class="card-head">
+    <span class="tag" style="--c:#f472b6;--bg:rgba(244,114,182,.12)">🎯 In vivo CAR-T</span>
+    <span class="pmid">PMID 42636156</span>
+  </div>
+  <div class="card-title">免疫球蛋白恒定区作为TCR-T治多发性骨髓瘤新靶点</div>
+  <div class="card-desc">Blood新作：TCR-T靶向策略扩展</div>
+  <div class="card-foot"><span class="src">Blood · 8/24</span><a class="card-link" href="https://pubmed.ncbi.nlm.nih.gov/42636156/" target="_blank">https://pubmed.ncbi.nlm.nih.gov/42636156/</a></div>
+</div><div class="card" data-cat="carT" data-text="自动化细胞治疗cdmo cellares启动缩编 失去大客户后收缩——car-t制造端降温信号，对cdmo选择与合作谈判有参考意义 fiercepharma · 8/24">
+  <div class="card-head">
+    <span class="tag" style="--c:#f472b6;--bg:rgba(244,114,182,.12)">🎯 In vivo CAR-T</span>
+    
+  </div>
+  <div class="card-title">自动化细胞治疗CDMO Cellares启动缩编</div>
+  <div class="card-desc">失去大客户后收缩——CAR-T制造端降温信号，对CDMO选择与合作谈判有参考意义</div>
+  <div class="card-foot"><span class="src">FiercePharma · 8/24</span><a class="card-link" href="https://www.fiercepharma.com/pharma/cellares-ceo-seeks-resize-company-after-loss-large-cell-therapy-manufacturing-customer" target="_blank">https://www.fiercepharma.com/pharma/cellares-ceo-seeks-resize-company…</a></div>
+</div><div class="card" data-cat="mRNA" data-text="bnt162b2激活spike反应性调节t细胞（treg） 京都大学：cd39+ctla4/tigit+ treg被疫苗激活——对治疗性mrna疫苗的免疫平衡设计有借鉴意义 int immunol · 8/24">
+  <div class="card-head">
+    <span class="tag" style="--c:#a78bfa;--bg:rgba(167,139,250,.12)">🧪 mRNA肿瘤疫苗</span>
+    <span class="pmid">PMID 42634894</span>
+  </div>
+  <div class="card-title">BNT162b2激活Spike反应性调节T细胞（Treg）</div>
+  <div class="card-desc">京都大学：CD39+CTLA4/TIGIT+ Treg被疫苗激活——对治疗性mRNA疫苗的免疫平衡设计有借鉴意义</div>
+  <div class="card-foot"><span class="src">Int Immunol · 8/24</span><a class="card-link" href="https://pubmed.ncbi.nlm.nih.gov/42634894/" target="_blank">https://pubmed.ncbi.nlm.nih.gov/42634894/</a></div>
+</div><div class="card" data-cat="mRNA" data-text="merck+moderna v940个体化新抗原疫苗topline阳性 本周头条：mrna-4157/v940公布阳性topline，moderna股价大涨——个体化mrna肿瘤疫苗iii期时代的开端信号，endpoints周报有详细拆解 endpoints weekly · 8/22">
+  <div class="card-head">
+    <span class="tag" style="--c:#a78bfa;--bg:rgba(167,139,250,.12)">🧪 mRNA肿瘤疫苗</span>
+    <span class="star">⭐ 重点</span>
+  </div>
+  <div class="card-title">Merck+Moderna V940个体化新抗原疫苗topline阳性</div>
+  <div class="card-desc">本周头条：mRNA-4157/V940公布阳性topline，Moderna股价大涨——个体化mRNA肿瘤疫苗III期时代的开端信号，Endpoints周报有详细拆解</div>
+  <div class="card-foot"><span class="src">Endpoints Weekly · 8/22</span><a class="card-link" href="https://endpoints.news/third-death-in-chinas-expedited-trials-merck-and-modernas-cancer-vaccine-win-and-more/" target="_blank">https://endpoints.news/third-death-in-chinas-expedited-trials-merck-a…</a></div>
+</div><div class="card" data-cat="pharma" data-text="罗氏豪掷最高$2.3b引进韩美增肌减重资产 首付$190m，非肠促胰素类机制——连续加码肥胖管线，差异化押注增肌减脂方向 endpoints · 8/24">
+  <div class="card-head">
+    <span class="tag" style="--c:#fbbf24;--bg:rgba(251,191,36,.12)">🏢 药企动态</span>
+    
+  </div>
+  <div class="card-title">罗氏豪掷最高$2.3B引进韩美增肌减重资产</div>
+  <div class="card-desc">首付$190M，非肠促胰素类机制——连续加码肥胖管线，差异化押注增肌减脂方向</div>
+  <div class="card-foot"><span class="src">Endpoints · 8/24</span><a class="card-link" href="https://endpoints.news/roche-bets-up-to-2-3b-on-hanmis-early-stage-muscle-building-obesity-asset/" target="_blank">https://endpoints.news/roche-bets-up-to-2-3b-on-hanmis-early-stage-mu…</a></div>
+</div><div class="card" data-cat="pharma" data-text="默沙东、阿斯利康挑战medicare药价谈判被驳回 ira诉讼双双被dc/马里兰法院驳回 fiercepharma · 8/24">
+  <div class="card-head">
+    <span class="tag" style="--c:#fbbf24;--bg:rgba(251,191,36,.12)">🏢 药企动态</span>
+    
+  </div>
+  <div class="card-title">默沙东、阿斯利康挑战Medicare药价谈判被驳回</div>
+  <div class="card-desc">IRA诉讼双双被DC/马里兰法院驳回</div>
+  <div class="card-foot"><span class="src">FiercePharma · 8/24</span><a class="card-link" href="https://www.fiercepharma.com/pharma/merck-az-lawsuits-against-medicare-price-negotiations-are-swatted-away" target="_blank">https://www.fiercepharma.com/pharma/merck-az-lawsuits-against-medicar…</a></div>
+</div><div class="card" data-cat="pharma" data-text="esc 2026本周开幕：心血管数据密集期 az、ionis、cytokinetics、诺华、crispr tx重磅数据将陆续释放 endpoints · 8/24">
+  <div class="card-head">
+    <span class="tag" style="--c:#fbbf24;--bg:rgba(251,191,36,.12)">🏢 药企动态</span>
+    
+  </div>
+  <div class="card-title">ESC 2026本周开幕：心血管数据密集期</div>
+  <div class="card-desc">AZ、Ionis、Cytokinetics、诺华、CRISPR Tx重磅数据将陆续释放</div>
+  <div class="card-foot"><span class="src">Endpoints · 8/24</span><a class="card-link" href="https://endpoints.news/news-on-astrazeneca-cytokinetics-novartis-what-to-look-out-for-at-esc-2026/" target="_blank">https://endpoints.news/news-on-astrazeneca-cytokinetics-novartis-what…</a></div>
+</div><div class="card" data-cat="pharma" data-text="fda推迟capricor dmd疗法deramiocel的pdufa日期 为审阅新增数据；regenxbio hunter综合征基因治疗年内第二次临床搁置（同日） endpoints · 8/24">
+  <div class="card-head">
+    <span class="tag" style="--c:#fbbf24;--bg:rgba(251,191,36,.12)">🏢 药企动态</span>
+    
+  </div>
+  <div class="card-title">FDA推迟Capricor DMD疗法deramiocel的PDUFA日期</div>
+  <div class="card-desc">为审阅新增数据；Regenxbio Hunter综合征基因治疗年内第二次临床搁置（同日）</div>
+  <div class="card-foot"><span class="src">Endpoints · 8/24</span><a class="card-link" href="https://endpoints.news/fda-delays-capricors-deramiocel-pdufa-date-to-review-new-data/" target="_blank">https://endpoints.news/fda-delays-capricors-deramiocel-pdufa-date-to-…</a></div>
+</div><div class="card" data-cat="pharma" data-text="rfk jr/hhs发起儿科疫苗推荐修订公众征询 美国疫苗政策环境变数持续——mrna平台政策风险背景关注 fiercepharma · 8/24">
+  <div class="card-head">
+    <span class="tag" style="--c:#fbbf24;--bg:rgba(251,191,36,.12)">🏢 药企动态</span>
+    
+  </div>
+  <div class="card-title">RFK Jr/HHS发起儿科疫苗推荐修订公众征询</div>
+  <div class="card-desc">美国疫苗政策环境变数持续——mRNA平台政策风险背景关注</div>
+  <div class="card-foot"><span class="src">FiercePharma · 8/24</span><a class="card-link" href="https://www.fiercepharma.com/pharma/rfk-jr-seeks-public-input-how-us-formulates-childhood-vaccine-recommendations" target="_blank">https://www.fiercepharma.com/pharma/rfk-jr-seeks-public-input-how-us-…</a></div>
+</div></div>
+</section><section class="day" id="day-2026-08-24">
+  <div class="day-head">
+    <div class="day-date">08-24 周一<span class="sub">晨间版</span></div>
+    <div class="chips"><span class="chip" data-filter="peptide">🧬 多肽药物 · 3</span><span class="chip" data-filter="carT">🎯 In vivo CAR-T · 2</span><span class="chip" data-filter="mRNA">🧪 mRNA肿瘤疫苗 · 1</span><span class="chip" data-filter="pharma">🏢 药企动态 · 2</span></div>
+  </div>
+  <div class="grid"><div class="card" data-cat="peptide" data-text="多肽-细胞外囊泡（peptide-ev）复合物靶向递送治阿尔茨海默病 h102-cp05嵌合肽（β片层破坏肽+cd63靶向锚定）借助ev递送抑制aβ，体外+斑马鱼初步安全性良好 j drug target · 8/22">
+  <div class="card-head">
+    <span class="tag" style="--c:#22d3ee;--bg:rgba(34,211,238,.12)">🧬 多肽药物</span>
+    <span class="pmid">PMID 42632811</span>
+  </div>
+  <div class="card-title">多肽-细胞外囊泡（peptide-EV）复合物靶向递送治阿尔茨海默病</div>
+  <div class="card-desc">H102-CP05嵌合肽（β片层破坏肽+CD63靶向锚定）借助EV递送抑制Aβ，体外+斑马鱼初步安全性良好</div>
+  <div class="card-foot"><span class="src">J Drug Target · 8/22</span><a class="card-link" href="https://pubmed.ncbi.nlm.nih.gov/42632811/" target="_blank">https://pubmed.ncbi.nlm.nih.gov/42632811/</a></div>
+</div><div class="card" data-cat="peptide" data-text="anxa1衍生肽ac(2-26)保护视网膜细胞线粒体功能 高糖/炎症应激下保护人视网膜细胞与类器官——糖尿病视网膜病变治疗潜力 biomed pharmacother · 8/22">
+  <div class="card-head">
+    <span class="tag" style="--c:#22d3ee;--bg:rgba(34,211,238,.12)">🧬 多肽药物</span>
+    <span class="pmid">PMID 42632302</span>
+  </div>
+  <div class="card-title">AnxA1衍生肽Ac(2-26)保护视网膜细胞线粒体功能</div>
+  <div class="card-desc">高糖/炎症应激下保护人视网膜细胞与类器官——糖尿病视网膜病变治疗潜力</div>
+  <div class="card-foot"><span class="src">Biomed Pharmacother · 8/22</span><a class="card-link" href="https://pubmed.ncbi.nlm.nih.gov/42632302/" target="_blank">https://pubmed.ncbi.nlm.nih.gov/42632302/</a></div>
+</div><div class="card" data-cat="peptide" data-text="抗耐药菌多肽纳米策略综述 从天然氨基酸到分子修饰——抗菌肽工程化的系统梳理 biotechnol adv · 8/22">
+  <div class="card-head">
+    <span class="tag" style="--c:#22d3ee;--bg:rgba(34,211,238,.12)">🧬 多肽药物</span>
+    <span class="pmid">PMID 42632603</span>
+  </div>
+  <div class="card-title">抗耐药菌多肽纳米策略综述</div>
+  <div class="card-desc">从天然氨基酸到分子修饰——抗菌肽工程化的系统梳理</div>
+  <div class="card-foot"><span class="src">Biotechnol Adv · 8/22</span><a class="card-link" href="https://pubmed.ncbi.nlm.nih.gov/42632603/" target="_blank">https://pubmed.ncbi.nlm.nih.gov/42632603/</a></div>
+</div><div class="card" data-cat="carT" data-text="unicar + 同源二聚体fapi肽类靶向模块打击fap+肿瘤与基质 可切换肽类靶向模块的临床前评价——可切换靶向模块的设计思路值得关注 oncoimmunology · 8/21">
+  <div class="card-head">
+    <span class="tag" style="--c:#f472b6;--bg:rgba(244,114,182,.12)">🎯 In vivo CAR-T</span>
+    <span class="pmid">PMID 42627862</span>
+  </div>
+  <div class="card-title">UniCAR + 同源二聚体FAPI肽类靶向模块打击FAP+肿瘤与基质</div>
+  <div class="card-desc">可切换肽类靶向模块的临床前评价——可切换靶向模块的设计思路值得关注</div>
+  <div class="card-foot"><span class="src">Oncoimmunology · 8/21</span><a class="card-link" href="https://pubmed.ncbi.nlm.nih.gov/42627862/" target="_blank">https://pubmed.ncbi.nlm.nih.gov/42627862/</a></div>
+</div><div class="card" data-cat="carT" data-text="cd7 car-t特异性清除慢性髓系白血病干细胞 靶向干性池的治疗潜力 hematology · 8/22">
+  <div class="card-head">
+    <span class="tag" style="--c:#f472b6;--bg:rgba(244,114,182,.12)">🎯 In vivo CAR-T</span>
+    <span class="pmid">PMID 42629973</span>
+  </div>
+  <div class="card-title">CD7 CAR-T特异性清除慢性髓系白血病干细胞</div>
+  <div class="card-desc">靶向干性池的治疗潜力</div>
+  <div class="card-foot"><span class="src">Hematology · 8/22</span><a class="card-link" href="https://pubmed.ncbi.nlm.nih.gov/42629973/" target="_blank">https://pubmed.ncbi.nlm.nih.gov/42629973/</a></div>
+</div><div class="card" data-cat="mRNA" data-text="工程化外泌体亲淋巴mrna疫苗（串联抗原设计） 胰腺癌模型中诱导强抗肿瘤免疫——外泌体递送+抗原串联的设计思路 int j pharm · 8/21">
+  <div class="card-head">
+    <span class="tag" style="--c:#a78bfa;--bg:rgba(167,139,250,.12)">🧪 mRNA肿瘤疫苗</span>
+    <span class="pmid">PMID 42628816</span>
+  </div>
+  <div class="card-title">工程化外泌体亲淋巴mRNA疫苗（串联抗原设计）</div>
+  <div class="card-desc">胰腺癌模型中诱导强抗肿瘤免疫——外泌体递送+抗原串联的设计思路</div>
+  <div class="card-foot"><span class="src">Int J Pharm · 8/21</span><a class="card-link" href="https://pubmed.ncbi.nlm.nih.gov/42628816/" target="_blank">https://pubmed.ncbi.nlm.nih.gov/42628816/</a></div>
+</div><div class="card" data-cat="pharma" data-text="j&amp;j tecvayli+darzalex组合获欧盟批准 多发性骨髓瘤双抗组合监管进展 fiercepharma · 8/21前后">
+  <div class="card-head">
+    <span class="tag" style="--c:#fbbf24;--bg:rgba(251,191,36,.12)">🏢 药企动态</span>
+    
+  </div>
+  <div class="card-title">J&amp;J Tecvayli+Darzalex组合获欧盟批准</div>
+  <div class="card-desc">多发性骨髓瘤双抗组合监管进展</div>
+  <div class="card-foot"><span class="src">FiercePharma · 8/21前后</span><a class="card-link" href="https://www.fiercepharma.com/pharma/xsprays-dasynoc-approval-bid-foiled-again-fdas-contract-manufacturer-concerns" target="_blank">https://www.fiercepharma.com/pharma/xsprays-dasynoc-approval-bid-foil…</a></div>
+</div><div class="card" data-cat="pharma" data-text="xspray白血病药dasynoc再因cmo合规问题被fda拒 cmo合规问题再次警示供应商质量管理的重要性 fiercepharma · 8/21前后">
+  <div class="card-head">
+    <span class="tag" style="--c:#fbbf24;--bg:rgba(251,191,36,.12)">🏢 药企动态</span>
+    
+  </div>
+  <div class="card-title">Xspray白血病药Dasynoc再因CMO合规问题被FDA拒</div>
+  <div class="card-desc">CMO合规问题再次警示供应商质量管理的重要性</div>
+  <div class="card-foot"><span class="src">FiercePharma · 8/21前后</span><a class="card-link" href="https://www.fiercepharma.com/pharma/xsprays-dasynoc-approval-bid-foiled-again-fdas-contract-manufacturer-concerns" target="_blank">https://www.fiercepharma.com/pharma/xsprays-dasynoc-approval-bid-foil…</a></div>
+</div></div>
+</section><section class="day" id="day-2026-08-23">
+  <div class="day-head">
+    <div class="day-date">08-23 周日<span class="sub">晚间版</span></div>
+    <div class="chips"><span class="chip" data-filter="peptide">🧬 多肽药物 · 2</span><span class="chip" data-filter="carT">🎯 In vivo CAR-T · 1</span><span class="chip" data-filter="mRNA">🧪 mRNA肿瘤疫苗 · 1</span><span class="chip" data-filter="pharma">🏢 药企动态 · 3</span></div>
+  </div>
+  <div class="grid"><div class="card" data-cat="peptide" data-text="spexin多肽减轻脑缺血再灌注损伤 大鼠模型中抑制nf-κb相关炎症与凋亡——神经保护肽方向新作 mol neurobiol · 8/22">
+  <div class="card-head">
+    <span class="tag" style="--c:#22d3ee;--bg:rgba(34,211,238,.12)">🧬 多肽药物</span>
+    <span class="pmid">PMID 42632851</span>
+  </div>
+  <div class="card-title">Spexin多肽减轻脑缺血再灌注损伤</div>
+  <div class="card-desc">大鼠模型中抑制NF-κB相关炎症与凋亡——神经保护肽方向新作</div>
+  <div class="card-foot"><span class="src">Mol Neurobiol · 8/22</span><a class="card-link" href="https://pubmed.ncbi.nlm.nih.gov/42632851/" target="_blank">https://pubmed.ncbi.nlm.nih.gov/42632851/</a></div>
+</div><div class="card" data-cat="peptide" data-text="线粒体衍生肽水凝胶增强线粒体移植促心脏修复 机制涉及巨噬细胞代谢重编程——肽材料×再生医学交叉方向 bioact mater · 8/23收录">
+  <div class="card-head">
+    <span class="tag" style="--c:#22d3ee;--bg:rgba(34,211,238,.12)">🧬 多肽药物</span>
+    <span class="pmid">PMID 42633281</span>
+  </div>
+  <div class="card-title">线粒体衍生肽水凝胶增强线粒体移植促心脏修复</div>
+  <div class="card-desc">机制涉及巨噬细胞代谢重编程——肽材料×再生医学交叉方向</div>
+  <div class="card-foot"><span class="src">Bioact Mater · 8/23收录</span><a class="card-link" href="https://pubmed.ncbi.nlm.nih.gov/42633281/" target="_blank">https://pubmed.ncbi.nlm.nih.gov/42633281/</a></div>
+</div><div class="card" data-cat="carT" data-text="in vivo car t cells on the highway：下一个十年路线图 德国regensburg abken团队展望体内car-t产业化路线图（与nat cancer综述为姐妹篇） expert opin biol ther · 8/21">
+  <div class="card-head">
+    <span class="tag" style="--c:#f472b6;--bg:rgba(244,114,182,.12)">🎯 In vivo CAR-T</span>
+    <span class="pmid">PMID 42625558</span>
+  </div>
+  <div class="card-title">In vivo CAR T cells on the highway：下一个十年路线图</div>
+  <div class="card-desc">德国Regensburg Abken团队展望体内CAR-T产业化路线图（与Nat Cancer综述为姐妹篇）</div>
+  <div class="card-foot"><span class="src">Expert Opin Biol Ther · 8/21</span><a class="card-link" href="https://pubmed.ncbi.nlm.nih.gov/42625558/" target="_blank">https://pubmed.ncbi.nlm.nih.gov/42625558/</a></div>
+</div><div class="card" data-cat="mRNA" data-text="胆管癌冷肿瘤微环境与免疫复苏策略综述 含疫苗联合思路——冷肿瘤加热策略的系统梳理 oncogene · 8/21">
+  <div class="card-head">
+    <span class="tag" style="--c:#a78bfa;--bg:rgba(167,139,250,.12)">🧪 mRNA肿瘤疫苗</span>
+    <span class="pmid">PMID 42629442</span>
+  </div>
+  <div class="card-title">胆管癌冷肿瘤微环境与免疫复苏策略综述</div>
+  <div class="card-desc">含疫苗联合思路——冷肿瘤加热策略的系统梳理</div>
+  <div class="card-foot"><span class="src">Oncogene · 8/21</span><a class="card-link" href="https://pubmed.ncbi.nlm.nih.gov/42629442/" target="_blank">https://pubmed.ncbi.nlm.nih.gov/42629442/</a></div>
+</div><div class="card" data-cat="pharma" data-text="roche/genentech投入$750m扩建俄勒冈灌装产线 预充注射器/自动注射器产能建设，新增250岗位——给药装置产能竞赛信号 endpoints · 8/21">
+  <div class="card-head">
+    <span class="tag" style="--c:#fbbf24;--bg:rgba(251,191,36,.12)">🏢 药企动态</span>
+    
+  </div>
+  <div class="card-title">Roche/Genentech投入$750M扩建俄勒冈灌装产线</div>
+  <div class="card-desc">预充注射器/自动注射器产能建设，新增250岗位——给药装置产能竞赛信号</div>
+  <div class="card-foot"><span class="src">Endpoints · 8/21</span><a class="card-link" href="https://endpoints.news/genentech-invests-750m-in-new-factory-bavarian-nordic-delays-lyme-trial/" target="_blank">https://endpoints.news/genentech-invests-750m-in-new-factory-bavarian…</a></div>
+</div><div class="card" data-cat="pharma" data-text="中国iit风波发酵：第三例死亡引发fda收紧呼声 美国会议员要求fda拒收未审计的中国临床数据——对国内创新药出海数据可信度的影响值得持续关注 endpoints · 8/21">
+  <div class="card-head">
+    <span class="tag" style="--c:#fbbf24;--bg:rgba(251,191,36,.12)">🏢 药企动态</span>
+    <span class="star">⭐ 重点</span>
+  </div>
+  <div class="card-title">中国IIT风波发酵：第三例死亡引发FDA收紧呼声</div>
+  <div class="card-desc">美国会议员要求FDA拒收未审计的中国临床数据——对国内创新药出海数据可信度的影响值得持续关注</div>
+  <div class="card-foot"><span class="src">Endpoints · 8/21</span><a class="card-link" href="https://endpoints.news/china-iit-deaths-prompt-lawmakers-to-request-fda-clampdown/" target="_blank">https://endpoints.news/china-iit-deaths-prompt-lawmakers-to-request-f…</a></div>
+</div><div class="card" data-cat="pharma" data-text="az/第一三共：enhertu nsclc iii期获胜 同刊tanabe皮肤罕见病药dersimelgon全球权益$435m fiercepharma asia · 8/20-21">
+  <div class="card-head">
+    <span class="tag" style="--c:#fbbf24;--bg:rgba(251,191,36,.12)">🏢 药企动态</span>
+    
+  </div>
+  <div class="card-title">AZ/第一三共：Enhertu NSCLC III期获胜</div>
+  <div class="card-desc">同刊Tanabe皮肤罕见病药dersimelgon全球权益$435M</div>
+  <div class="card-foot"><span class="src">FiercePharma Asia · 8/20-21</span><a class="card-link" href="https://www.fiercepharma.com/pharma/fierce-pharma-asia-chinas-iit-unravels-daiichi-sankyo-az-ph3-win-leo-tanabe-derm-deal" target="_blank">https://www.fiercepharma.com/pharma/fierce-pharma-asia-chinas-iit-unr…</a></div>
+</div></div>
+</section>
+<div class="empty" id="empty">没有匹配的条目 —— 换个关键词试试</div>
+<footer>由 Claw 维护 · 数据每日由晨间/晚间追踪任务自动更新 · 引用请以 PubMed / 官方新闻稿原文为准<br>本页面离线可用，双击即开 · 生成时间 2026-08-25 10:50</footer>
+</div>
+<script>
+const q = document.getElementById('q');
+const cards = [...document.querySelectorAll('.card')];
+const days = [...document.querySelectorAll('.day')];
+const chips = [...document.querySelectorAll('.chip')];
+let activeFilter = new Map();
+document.querySelectorAll('.nav-date').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.nav-date').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  document.getElementById(b.dataset.target).scrollIntoView({behavior:'smooth', block:'start'});
+});
+if (document.querySelector('.nav-date')) document.querySelector('.nav-date').classList.add('active');
+chips.forEach(ch => ch.onclick = () => {
+  const f = ch.dataset.filter, day = ch.closest('.day');
+  const on = ch.classList.toggle('active');
+  activeFilter.set(day.id + f, on);
+  apply();
+});
+function apply() {
+  let vis = 0;
+  cards.forEach(c => {
+    const day = c.closest('.day');
+    const fOn = [...activeFilter].some(([k,v]) => v && k.startsWith(day.id)) &&
+                !activeFilter.get(day.id + c.dataset.cat);
+    const match = !q.value || c.dataset.text.includes(q.value.toLowerCase()) ||
+                  c.innerText.toLowerCase().includes(q.value.toLowerCase());
+    const show = match && !fOn;
+    c.style.display = show ? '' : 'none';
+    if (show) vis++;
+  });
+  days.forEach(d => {
+    const any = [...d.querySelectorAll('.card')].some(c => c.style.display !== 'none');
+    d.style.display = any ? '' : 'none';
+  });
+  document.getElementById('empty').style.display = vis ? 'none' : 'block';
+}
+q.oninput = apply;
+</script>
+</body>
+</html>
